@@ -98,11 +98,22 @@ dialog::backdrop{background:rgba(0,0,0,.45)}
 dialog h3{font-size:15px; font-weight:900; margin:18px 0 6px; color:var(--accent)}
 dialog ul{margin:0; padding-left:1.2em; font-size:14px}
 dialog li{margin-bottom:5px}
+.big-num{font-size:40px; font-weight:900; color:var(--accent); font-variant-numeric:tabular-nums; line-height:1.1}
+.big-cap{font-size:13px; color:var(--sub); margin:2px 0 4px}
+.three{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin:16px 0}
+.three div{background:var(--accent-soft); border-radius:8px; padding:10px 8px; text-align:center}
+.three .n{font-size:20px; font-weight:900; font-variant-numeric:tabular-nums}
+.three .l{font-size:11px; color:var(--sub)}
+.yeartab{width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums}
+.yeartab td{padding:5px 4px; border-bottom:1px solid var(--line)}
+.yeartab td:last-child{text-align:right; font-weight:700}
+.yeartab .up{color:var(--accent)} .yeartab .down{color:var(--bad)}
+.yearwrap{display:grid; grid-template-columns:1fr 1fr; gap:0 22px}
 @media (max-width:460px){ .grid{grid-template-columns:1fr 1fr; gap:14px 18px} .slider-val{font-size:28px} }
 </style>
 <main>
 <h1>0050 提領計算機</h1>
-<p class="lede">拉動股市漲跌，看每個月可以領多少。<a href="#" id="ruleLink">完整規則</a></p>
+<p class="lede">拉動股市漲跌，看每個月可以領多少。<a href="#" id="ruleLink">完整規則</a> · <a href="#" id="histLink">歷史</a></p>
 
 <div class="modes" role="tablist">
   <button class="mode" id="tabFixed" role="tab" aria-selected="true">固定提領</button>
@@ -203,6 +214,50 @@ dialog li{margin-bottom:5px}
     </ul>
   </div>
 </dialog>
+
+<dialog id="histDlg">
+  <div class="dlg-inner">
+    <div class="dlg-head">
+      <h2>0050 過去這些年</h2>
+      <button class="dlg-close" id="histClose">關閉 ✕</button>
+    </div>
+    <div class="big-num">一年 +11.9%</div>
+    <p class="big-cap">2008 到 2025 這 18 年，含股息的平均（幾何年化）。長期跟公開資料的年化 11.8% 一致。</p>
+    <div class="three">
+      <div><div class="n">+20%</div><div class="l">近 5 年<br>每年</div></div>
+      <div><div class="n">+19%</div><div class="l">近 10 年<br>每年</div></div>
+      <div><div class="n">+15%</div><div class="l">成立 23 年<br>每年</div></div>
+    </div>
+    <p class="big-cap">近幾年偏高，是因為 2024、2025 台股大多頭。別用這兩年的感覺當常態，長期抓一年一成到一成二比較實在。</p>
+    <h3>每一年的報酬（含息）</h3>
+    <div class="yearwrap">
+      <table class="yeartab">
+        <tr><td>2008</td><td class="down">-43%</td></tr>
+        <tr><td>2009</td><td class="up">+75%</td></tr>
+        <tr><td>2010</td><td class="up">+13%</td></tr>
+        <tr><td>2011</td><td class="down">-16%</td></tr>
+        <tr><td>2012</td><td class="up">+12%</td></tr>
+        <tr><td>2013</td><td class="up">+12%</td></tr>
+        <tr><td>2014</td><td class="up">+17%</td></tr>
+        <tr><td>2015</td><td class="down">-6%</td></tr>
+        <tr><td>2016</td><td class="up">+20%</td></tr>
+      </table>
+      <table class="yeartab">
+        <tr><td>2017</td><td class="up">+18%</td></tr>
+        <tr><td>2018</td><td class="down">-5%</td></tr>
+        <tr><td>2019</td><td class="up">+34%</td></tr>
+        <tr><td>2020</td><td class="up">+31%</td></tr>
+        <tr><td>2021</td><td class="up">+22%</td></tr>
+        <tr><td>2022</td><td class="down">-21%</td></tr>
+        <tr><td>2023</td><td class="up">+27%</td></tr>
+        <tr><td>2024</td><td class="up">+49%</td></tr>
+        <tr><td>2025</td><td class="up">+37%</td></tr>
+      </table>
+    </div>
+    <p class="big-cap" style="margin-top:14px">18 年裡 13 年賺、5 年賠。最好 2009 漲 75%，最壞 2008 金融海嘯跌 43%。這就是為什麼要有保險絲和壞年桶：好年多、壞年少，但壞年真的會很痛，撐過去就好。</p>
+    <p class="big-cap" style="margin-top:8px; font-size:12px">資料：havocFuture 0050 績效追蹤、money101。含息、含金融海嘯。</p>
+  </div>
+</dialog>
 </main>
 <script>
 const $=id=>document.getElementById(id);
@@ -287,5 +342,8 @@ $('tabDyn').addEventListener('click',()=>setMode('dyn'));
 $('ruleLink').addEventListener('click',e=>{e.preventDefault();$('ruleDlg').showModal();});
 $('ruleClose').addEventListener('click',()=>$('ruleDlg').close());
 $('ruleDlg').addEventListener('click',e=>{if(e.target===$('ruleDlg'))$('ruleDlg').close();});
+$('histLink').addEventListener('click',e=>{e.preventDefault();$('histDlg').showModal();});
+$('histClose').addEventListener('click',()=>$('histDlg').close());
+$('histDlg').addEventListener('click',e=>{if(e.target===$('histDlg'))$('histDlg').close();});
 setMode('fixed');
 </script>
