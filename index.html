@@ -1,0 +1,225 @@
+<title>0050 提領計算機</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --bg:#FBFBF9; --ink:#1C201E; --sub:#6B7370; --line:#E3E6E2;
+  --accent:#0E7A5F; --accent-soft:#E7F2EE;
+  --warn:#B07818; --warn-soft:#F7EEDC;
+  --bad:#B0382E; --bad-soft:#F6E5E3;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#171A19; --ink:#ECEEEC; --sub:#98A09C; --line:#2C312E;
+    --accent:#4FBF9A; --accent-soft:#1E2E29;
+    --warn:#D9A84E; --warn-soft:#2E2818;
+    --bad:#E07A6F; --bad-soft:#33201D;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#171A19; --ink:#ECEEEC; --sub:#98A09C; --line:#2C312E;
+  --accent:#4FBF9A; --accent-soft:#1E2E29;
+  --warn:#D9A84E; --warn-soft:#2E2818;
+  --bad:#E07A6F; --bad-soft:#33201D;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
+  line-height:1.6;
+}
+main{max-width:620px; margin:0 auto; padding:40px 22px 72px}
+h1{font-size:24px; font-weight:900; margin:0 0 4px; letter-spacing:.02em}
+.lede{color:var(--sub); font-size:13px; margin:0 0 26px}
+.modes{display:flex; gap:26px; border-bottom:1px solid var(--line); margin-bottom:6px}
+.mode{
+  background:none; border:none; padding:8px 2px 10px; font:inherit; font-size:15px; font-weight:700;
+  color:var(--sub); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px;
+}
+.mode[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
+.mode:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+section{border-top:1px solid var(--line); padding:26px 0}
+section.first{border-top:none; padding-top:20px}
+.sec-label{font-size:12px; font-weight:700; color:var(--sub); letter-spacing:.14em; margin:0 0 16px}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:16px 24px}
+label{display:block; font-size:13px; font-weight:500; margin-bottom:4px}
+.unit{color:var(--sub); font-weight:400; font-size:12px}
+input[type=number]{
+  width:100%; font:inherit; font-size:19px; font-weight:700;
+  font-variant-numeric:tabular-nums;
+  color:var(--ink); background:transparent;
+  border:none; border-bottom:2px solid var(--line);
+  padding:2px 0 4px; border-radius:0;
+}
+input[type=number]:focus{outline:none; border-bottom-color:var(--accent)}
+.pct{font-size:12px; margin-top:3px; font-variant-numeric:tabular-nums}
+.slider-row{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:6px}
+.slider-val{font-size:34px; font-weight:900; font-variant-numeric:tabular-nums}
+.slider-val.up{color:var(--accent)} .slider-val.down{color:var(--bad)}
+input[type=range]{width:100%; margin:10px 0 2px; accent-color:var(--accent); height:28px}
+input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:4px}
+.range-ends{display:flex; justify-content:space-between; font-size:12px; color:var(--sub)}
+.pos-line{font-size:15px; margin-top:14px}
+.pos-line b{font-variant-numeric:tabular-nums}
+.verdict{margin-top:18px; padding:16px 18px; border-radius:10px; background:var(--accent-soft)}
+.verdict.warn{background:var(--warn-soft)}
+.verdict.bad{background:var(--bad-soft)}
+.verdict .word{font-size:22px; font-weight:900; display:block; margin-bottom:2px}
+.verdict.ok .word{color:var(--accent)}
+.verdict.warn .word{color:var(--warn)}
+.verdict.bad .word{color:var(--bad)}
+.verdict .why{font-size:13px; color:var(--sub)}
+table{width:100%; border-collapse:collapse; font-size:14px}
+td{padding:9px 0; border-bottom:1px dashed var(--line); vertical-align:baseline}
+td:last-child{text-align:right; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap}
+td .small{display:block; font-size:12px; color:var(--sub); font-weight:400}
+.gk{font-size:13px; color:var(--sub); margin:14px 0 0; padding-left:1.2em}
+.gk li{margin-bottom:4px}
+.rev{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:15px}
+.rev input{width:76px; font-size:19px}
+.rev-out{font-size:15px; margin-top:12px}
+.rev-out b{font-size:22px; font-variant-numeric:tabular-nums}
+.fine{font-size:12px; color:var(--sub); margin-top:26px; border-top:1px solid var(--line); padding-top:14px}
+.hide{display:none}
+@media (max-width:460px){ .grid{grid-template-columns:1fr 1fr; gap:14px 18px} .slider-val{font-size:28px} }
+</style>
+<main>
+<h1>0050 提領計算機</h1>
+<p class="lede">拉動股市漲跌，看每個月可以領多少。規則跟 Notion 那頁一樣。</p>
+
+<div class="modes" role="tablist">
+  <button class="mode" id="tabFixed" role="tab" aria-selected="true">固定提領（爸的版本）</button>
+  <button class="mode" id="tabDyn" role="tab" aria-selected="false">動態提領</button>
+</div>
+
+<section class="first">
+  <p class="sec-label">你的數字</p>
+  <div class="grid">
+    <div><label for="p0">起始本金 <span class="unit">萬</span></label><input id="p0" type="number" value="1000" min="100" step="50"></div>
+    <div id="boxW"><label for="w">每月想領 <span class="unit">萬</span></label><input id="w" type="number" value="3" min="0" step="0.5">
+      <div class="pct" id="wPct"></div></div>
+    <div id="boxDynRate" class="hide"><label for="dynRate">一年提領部位的 <span class="unit">%</span></label><input id="dynRate" type="number" value="4" min="1" max="12" step="0.5">
+      <div class="pct" id="dynPct"></div></div>
+    <div><label for="debt">借款 <span class="unit">萬</span></label><input id="debt" type="number" value="1000" min="0" step="50"></div>
+    <div><label for="rate">借款年利率 <span class="unit">%</span></label><input id="rate" type="number" value="2.76" min="0" step="0.1"></div>
+  </div>
+</section>
+
+<section>
+  <p class="sec-label">股市情境</p>
+  <div class="slider-row">
+    <span>從現在開始，股市</span>
+    <span class="slider-val" id="sVal">0%</span>
+  </div>
+  <input id="s" type="range" min="-60" max="100" value="0" step="5" aria-label="股市漲跌百分比">
+  <div class="range-ends"><span>-60%（世紀崩盤）</span><span>+100%</span></div>
+  <p class="pos-line">部位變成 <b id="pos">1,000 萬</b>　<span class="unit" id="fuseLines"></span></p>
+  <div class="verdict ok" id="verdict">
+    <span class="word" id="vWord">照領</span>
+    <span class="why" id="vWhy"></span>
+  </div>
+  <ul class="gk hide" id="gkList">
+    <li>虧損年不加領：前一年是虧的，今年金額不隨通膨調高</li>
+    <li>領太兇就砍：提領率飄高超過起始值的 20%，今年砍 10%</li>
+    <li>領太少就加：提領率掉到起始值的 80% 以下，今年加 10%</li>
+  </ul>
+</section>
+
+<section>
+  <p class="sec-label">這個情境下的每月數字</p>
+  <table>
+    <tr><td>固定領法拿到<span class="small">金額不變，這就是它的意義</span></td><td id="oFixed">3.0 萬</td></tr>
+    <tr><td>動態領法拿到<span class="small">部位 × 提領率 ÷ 12，跟著漲跌浮動</span></td><td id="oDyn">3.3 萬</td></tr>
+    <tr><td>要繳的利息<span class="small">借款 × 利率 ÷ 12，回測已把這筆算進去</span></td><td id="oInt">2.3 萬</td></tr>
+    <tr><td>你設定的領法安不安全<span class="small" id="safeNote"></span></td><td id="oSafe">安全</td></tr>
+  </table>
+</section>
+
+<section>
+  <p class="sec-label">反過來算：要領某個金額，需要多少本金</p>
+  <div class="rev">
+    <span>想每月穩定領</span>
+    <input id="revW" type="number" value="3" min="0.5" step="0.5" aria-label="想每月領幾萬">
+    <span>萬</span>
+  </div>
+  <p class="rev-out">需要本金約 <b id="revOut">750 到 1,000 萬</b><br>
+  <span class="unit">左邊是上限領法（一年 4.8%），右邊是甜蜜點領法（一年 3.6%）。有借款的話，利息要另外有來源（例如租金），或把它加進「想領」的金額裡。</span></p>
+</section>
+
+<p class="fine">依據：0050 含息 2009 到 2026、加權指數 1997 到 2026（不含息，嚴苛版），每個月份當起點各跑一次，借款利息照扣。保險絲＝跌破起始本金六成暫停提領、回到七成恢復，暫停期間靠壞年桶。動態的三條調整規則來自 GK（Guyton 與 Klinger 2006）護欄法則。此為歷史回測不是保證。</p>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('zh-TW',{maximumFractionDigits:0});
+const fmt1=n=>n.toLocaleString('zh-TW',{maximumFractionDigits:1});
+let mode='fixed';
+function setMode(m){
+  mode=m;
+  $('tabFixed').setAttribute('aria-selected', m==='fixed');
+  $('tabDyn').setAttribute('aria-selected', m==='dyn');
+  $('boxW').classList.toggle('hide', m!=='fixed');
+  $('boxDynRate').classList.toggle('hide', m!=='dyn');
+  $('gkList').classList.toggle('hide', m!=='dyn');
+  calc();
+}
+function calc(){
+  const P0=+$('p0').value||0, w=+$('w').value||0, D=+$('debt').value||0, r=(+$('rate').value||0)/100, s=(+$('s').value)/100;
+  const dynR=(+$('dynRate').value||0)/100;
+  const pos=P0*(1+s);
+  const stopLine=P0*0.6, backLine=P0*0.7;
+  $('sVal').textContent=(s>0?'+':'')+Math.round(s*100)+'%';
+  $('sVal').className='slider-val '+(s>0?'up':s<0?'down':'');
+  $('pos').textContent=fmt(pos)+' 萬';
+  const wRate=P0>0?w*12/P0:0;
+  $('wPct').textContent='＝ 一年提領本金的 '+(wRate*100).toFixed(1)+'%';
+  $('wPct').style.color=wRate<=0.036?'var(--accent)':wRate<=0.048?'var(--warn)':'var(--bad)';
+  $('dynPct').textContent='＝ 這個月拿 部位 × '+(dynR*100).toFixed(1)+'% ÷ 12';
+  const v=$('verdict'), vw=$('vWord'), vy=$('vWhy');
+  let fixedGet=w;
+  if(pos<stopLine) fixedGet=0;
+  const dynGet=pos*dynR/12;
+  if(mode==='fixed'){
+    $('fuseLines').textContent='保險絲：跌破 '+fmt(stopLine)+' 萬暫停，回到 '+fmt(backLine)+' 萬恢復';
+    if(pos<stopLine){
+      v.className='verdict bad'; vw.textContent='暫停提領';
+      vy.textContent='部位低於 '+fmt(stopLine)+' 萬。這個月不賣股票，生活費改用壞年桶和租金，等回到 '+fmt(backLine)+' 萬再恢復。';
+    }else if(pos<backLine){
+      v.className='verdict warn'; vw.textContent='看之前的狀態';
+      vy.textContent='部位在兩條線之間：原本在領就繼續領，原本暫停就繼續暫停，等站回 '+fmt(backLine)+' 萬。';
+    }else{
+      v.className='verdict ok'; vw.textContent='照領 '+fmt1(w)+' 萬';
+      vy.textContent='部位在安全區，什麼都不用做，金額不變。';
+    }
+  }else{
+    $('fuseLines').textContent='動態版不用保險絲，金額自己縮水就是保護';
+    if(s<-0.005){
+      v.className='verdict warn'; vw.textContent='這個月拿 '+fmt1(dynGet)+' 萬';
+      vy.textContent='部位縮水，領的自動變少但不會歸零。日子的缺口用壞年桶或租金補。';
+    }else{
+      v.className='verdict ok'; vw.textContent='這個月拿 '+fmt1(dynGet)+' 萬';
+      vy.textContent='部位長大，領的跟著變多。';
+    }
+  }
+  $('oFixed').textContent=fmt1(fixedGet)+' 萬';
+  $('oDyn').textContent=fmt1(dynGet)+' 萬';
+  $('oInt').textContent=fmt1(D*r/12)+' 萬';
+  const safe=$('oSafe'), note=$('safeNote');
+  if(mode==='fixed'){
+    note.textContent='回測結論：一年 3.6% 是甜蜜點，4.8% 是上限';
+    if(wRate<=0.036){safe.textContent='安全（甜蜜點內）';safe.style.color='var(--accent)';}
+    else if(wRate<=0.048){safe.textContent='可以（在上限內）';safe.style.color='var(--warn)';}
+    else{safe.textContent='太多，會斷炊';safe.style.color='var(--bad)';}
+  }else{
+    note.textContent='回測結論：4% 以內零破產；4 到 6% 要配下面三條調整規則';
+    if(dynR<=0.04){safe.textContent='安全';safe.style.color='var(--accent)';}
+    else if(dynR<=0.06){safe.textContent='要配三條規則才行';safe.style.color='var(--warn)';}
+    else{safe.textContent='太多，部位會越領越薄';safe.style.color='var(--bad)';}
+  }
+  const rw=+$('revW').value||0;
+  $('revOut').textContent=fmt(rw*12/0.048)+' 到 '+fmt(rw*12/0.036)+' 萬';
+}
+$('tabFixed').addEventListener('click',()=>setMode('fixed'));
+$('tabDyn').addEventListener('click',()=>setMode('dyn'));
+['p0','w','debt','rate','s','revW','dynRate'].forEach(id=>$(id).addEventListener('input',calc));
+calc();
+</script>
