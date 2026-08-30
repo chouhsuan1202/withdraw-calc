@@ -38,6 +38,7 @@ h1{font-size:24px; font-weight:900; margin:0 0 4px; letter-spacing:.02em}
 }
 .mode[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
 .mode:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+.rule{font-size:14px; margin:14px 0 0; padding:10px 14px; background:var(--accent-soft); border-radius:8px}
 section{border-top:1px solid var(--line); padding:26px 0}
 section.first{border-top:none; padding-top:20px}
 .sec-label{font-size:12px; font-weight:700; color:var(--sub); letter-spacing:.14em; margin:0 0 16px}
@@ -88,9 +89,10 @@ td .small{display:block; font-size:12px; color:var(--sub); font-weight:400}
 <p class="lede">拉動股市漲跌，看每個月可以領多少。規則跟 Notion 那頁一樣。</p>
 
 <div class="modes" role="tablist">
-  <button class="mode" id="tabFixed" role="tab" aria-selected="true">固定提領（爸的版本）</button>
+  <button class="mode" id="tabFixed" role="tab" aria-selected="true">固定提領</button>
   <button class="mode" id="tabDyn" role="tab" aria-selected="false">動態提領</button>
 </div>
+<p class="rule" id="modeRule"></p>
 
 <section class="first">
   <p class="sec-label">你的數字</p>
@@ -128,11 +130,21 @@ td .small{display:block; font-size:12px; color:var(--sub); font-weight:400}
 <section>
   <p class="sec-label">這個情境下的每月數字</p>
   <table>
-    <tr><td>固定領法拿到<span class="small">金額不變，這就是它的意義</span></td><td id="oFixed">3.0 萬</td></tr>
-    <tr><td>動態領法拿到<span class="small">部位 × 提領率 ÷ 12，跟著漲跌浮動</span></td><td id="oDyn">3.3 萬</td></tr>
+    <tr id="rowFixed"><td>每月拿到<span class="small">金額寫死不變，這就是固定的意義</span></td><td id="oFixed">3.0 萬</td></tr>
+    <tr id="rowDyn" class="hide"><td>每月拿到<span class="small">1 月部位 × 提領率 ÷ 12</span></td><td id="oDyn">3.3 萬</td></tr>
     <tr><td>要繳的利息<span class="small">借款 × 利率 ÷ 12，回測已把這筆算進去</span></td><td id="oInt">2.3 萬</td></tr>
     <tr><td>你設定的領法安不安全<span class="small" id="safeNote"></span></td><td id="oSafe">安全</td></tr>
   </table>
+</section>
+
+<section class="hide" id="dynExample">
+  <p class="sec-label">動態的整個遊戲規則就這張表</p>
+  <table>
+    <tr><td>1 月那天部位 700 萬</td><td id="ex700">一年 28 萬，每月 2.3 萬</td></tr>
+    <tr><td>1 月那天部位 1,000 萬</td><td id="ex1000">一年 40 萬，每月 3.3 萬</td></tr>
+    <tr><td>1 月那天部位 1,300 萬</td><td id="ex1300">一年 52 萬，每月 4.3 萬</td></tr>
+  </table>
+  <p class="pct" style="margin-top:8px; color:var(--sub)">根據的東西只有一個：那天帳戶值多少。沒有別的條件、沒有人為判斷。</p>
 </section>
 
 <section>
@@ -160,6 +172,12 @@ function setMode(m){
   $('boxW').classList.toggle('hide', m!=='fixed');
   $('boxDynRate').classList.toggle('hide', m!=='dyn');
   $('gkList').classList.toggle('hide', m!=='dyn');
+  $('rowFixed').classList.toggle('hide', m!=='fixed');
+  $('rowDyn').classList.toggle('hide', m!=='dyn');
+  $('dynExample').classList.toggle('hide', m!=='dyn');
+  $('modeRule').textContent = m==='fixed'
+    ? '規則：金額寫死，每月一樣。只有一個例外，跌破保險絲就暫停，回來再繼續。'
+    : '規則只有一條：每年 1 月看一次部位，乘上提領率，就是今年的錢。好年自動多領，壞年自動少領。';
   calc();
 }
 function calc(){
@@ -193,12 +211,13 @@ function calc(){
   }else{
     $('fuseLines').textContent='動態版不用保險絲，金額自己縮水就是保護';
     if(s<-0.005){
-      v.className='verdict warn'; vw.textContent='這個月拿 '+fmt1(dynGet)+' 萬';
-      vy.textContent='部位縮水，領的自動變少但不會歸零。日子的缺口用壞年桶或租金補。';
+      v.className='verdict warn'; vw.textContent='每月拿 '+fmt1(dynGet)+' 萬';
+      vy.textContent='算式：部位 '+fmt(pos)+' 萬 × '+(dynR*100).toFixed(1)+'% ÷ 12。部位縮水所以領的自動變少，但不會歸零。缺口用壞年桶或租金補。';
     }else{
-      v.className='verdict ok'; vw.textContent='這個月拿 '+fmt1(dynGet)+' 萬';
-      vy.textContent='部位長大，領的跟著變多。';
+      v.className='verdict ok'; vw.textContent='每月拿 '+fmt1(dynGet)+' 萬';
+      vy.textContent='算式：部位 '+fmt(pos)+' 萬 × '+(dynR*100).toFixed(1)+'% ÷ 12。部位長大，領的跟著變多。';
     }
+    ['700','1000','1300'].forEach(k=>{ const yr=(+k)*dynR; $('ex'+k).textContent='一年 '+fmt(yr)+' 萬，每月 '+fmt1(yr/12)+' 萬'; });
   }
   $('oFixed').textContent=fmt1(fixedGet)+' 萬';
   $('oDyn').textContent=fmt1(dynGet)+' 萬';
@@ -221,5 +240,5 @@ function calc(){
 $('tabFixed').addEventListener('click',()=>setMode('fixed'));
 $('tabDyn').addEventListener('click',()=>setMode('dyn'));
 ['p0','w','debt','rate','s','revW','dynRate'].forEach(id=>$(id).addEventListener('input',calc));
-calc();
+setMode('fixed');
 </script>
