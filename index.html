@@ -180,9 +180,9 @@ dialog li{margin-bottom:5px}
 <section class="hide" id="dynExample">
   <p class="sec-label">動態的整個遊戲規則就這張表</p>
   <table>
-    <tr><td>1 月那天部位 700 萬</td><td id="ex700">一年 28 萬，每月 2.3 萬</td></tr>
-    <tr><td>1 月那天部位 1,000 萬</td><td id="ex1000">一年 40 萬，每月 3.3 萬</td></tr>
-    <tr><td>1 月那天部位 1,300 萬</td><td id="ex1300">一年 52 萬，每月 4.3 萬</td></tr>
+    <tr><td id="exL1">1 月那天部位 700 萬（跌三成）</td><td id="exV1">一年 28 萬，每月 2.3 萬</td></tr>
+    <tr><td id="exL2">1 月那天部位 1,000 萬（你的本金）</td><td id="exV2">一年 40 萬，每月 3.3 萬</td></tr>
+    <tr><td id="exL3">1 月那天部位 1,300 萬（漲三成）</td><td id="exV3">一年 52 萬，每月 4.3 萬</td></tr>
   </table>
   <p class="pct" style="margin-top:8px; color:var(--sub)">根據的東西只有一個：那天帳戶值多少。沒有別的條件、沒有人為判斷。</p>
 </section>
@@ -405,7 +405,11 @@ function calc(){
   }else{
     $('revOut').textContent=fmt((rw*12+D*r)/0.076)+' 到 '+fmt((rw*12+D*r)/0.064)+' 萬';
   }
-  ['700','1000','1300'].forEach(k=>{ const yr=(+k)*dynR; $('ex'+k).textContent='一年 '+fmt(yr)+' 萬，每月 '+fmt1(yr/12)+' 萬'; });
+  [[1,0.7,'跌三成'],[2,1,'你的本金'],[3,1.3,'漲三成']].forEach(([i,f,tag])=>{
+    const pv=P0*f, yr=pv*dynR;
+    $('exL'+i).textContent='1 月那天部位 '+fmt(pv)+' 萬（'+tag+'）';
+    $('exV'+i).textContent='一年 '+fmt(yr)+' 萬，每月 '+fmt1(yr/12)+' 萬';
+  });
 }
 $('tabFixed').addEventListener('click',()=>setMode('fixed'));
 $('tabDyn').addEventListener('click',()=>setMode('dyn'));
