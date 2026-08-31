@@ -95,7 +95,7 @@ td .small{display:block; font-size:12px; color:var(--sub); font-weight:400}
 .lede a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 dialog{
   border:none; border-radius:12px; padding:0;
-  width:min(560px, calc(100vw - 40px)); max-height:80vh;
+  width:min(760px, calc(100vw - 24px)); max-height:86vh;
   background:var(--bg); color:var(--ink);
 }
 dialog::backdrop{background:rgba(0,0,0,.45)}
@@ -122,7 +122,7 @@ dialog li{margin-bottom:5px}
 </style>
 <main>
 <h1>0050 提領計算機</h1>
-<p class="lede">拉動股市漲跌，看每個月可以領多少。<a href="#" id="ruleLink">完整規則</a> · <a href="#" id="histLink">歷史</a></p>
+<p class="lede">拉動股市漲跌，看每個月可以領多少。<a href="#" id="histLink">歷史</a></p>
 
 <div class="modes" role="tablist">
   <button class="mode" id="tabFixed" role="tab" aria-selected="true">固定提領</button>
@@ -200,18 +200,17 @@ dialog li{margin-bottom:5px}
 <dialog id="ruleDlg">
   <div class="dlg-inner">
     <div class="dlg-head">
-      <h2>完整規則</h2>
+      <h2 id="ruleTitle">規則</h2>
       <button class="dlg-close" id="ruleClose">關閉 ✕</button>
     </div>
-    <h3>固定提領</h3>
+    <div id="secFixed">
     <ul>
       <li>起手式（只做一次）：個股全換成 0050，撥約 <span id="ruleReserve">60</span> 萬放定存當「壞年桶」，銀行設定每月自動轉 <span id="ruleMonthly">3</span> 萬到生活戶頭</li>
       <li>每年 1 月賣出 <span id="ruleYearly">36</span> 萬放活存，供自動轉帳用。一年就這一個動作</li>
-      <li>金額不隨通膨調漲：領的不變、部位越長越大，負擔一年比一年輕</li>
       <li>保險絲：部位跌破起始本金的六成，暫停提領，生活費改用壞年桶和租金；回到七成才恢復。規則寫死，不靠臨場判斷</li>
-      <li>其他時間關掉 app，明年 1 月再打開</li>
     </ul>
-    <h3>動態提領</h3>
+    </div>
+    <div id="secDyn" class="hide">
     <ul>
       <li>每年 1 月看一次部位，乘上提領率（例如 4%），就是今年的生活費，除以 12 按月轉</li>
       <li>好年自動多領、壞年自動少領。金額自己縮水就是保護，所以不用保險絲</li>
@@ -242,6 +241,7 @@ dialog li{margin-bottom:5px}
       <text x="345" y="422" font-size="12" fill="var(--sub)">例：漲到 1,300 萬只領 40 萬 = 3.1%</text>
       <text x="340" y="468" font-size="12" text-anchor="middle" fill="var(--sub)">當前提領率 ＝ 今年領的金額 ÷ 現在部位，水位是被部位漲跌推動的</text>
     </svg>
+    </div>
     <h3>兩種都適用</h3>
     <ul>
       <li>借款利息每月自動扣帳，這個計算器和回測都已經把它算進去</li>
@@ -412,10 +412,12 @@ function openRules(e){
   $('ruleMonthly').textContent=fmt1(w);
   $('ruleYearly').textContent=fmt1(w*12);
   $('ruleReserve').textContent=fmt(Math.round(w*20));
+  $('secFixed').classList.toggle('hide', mode!=='fixed');
+  $('secDyn').classList.toggle('hide', mode!=='dyn');
+  $('ruleTitle').textContent = mode==='fixed' ? '固定提領的規則' : '動態提領的規則';
   $('ruleDlg').showModal();
 }
 $('modeRuleLink').addEventListener('click',openRules);
-$('ruleLink').addEventListener('click',openRules);
 $('ruleClose').addEventListener('click',()=>$('ruleDlg').close());
 $('ruleDlg').addEventListener('click',e=>{if(e.target===$('ruleDlg'))$('ruleDlg').close();});
 $('histLink').addEventListener('click',e=>{e.preventDefault();$('histDlg').showModal();});
