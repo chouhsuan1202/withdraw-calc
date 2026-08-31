@@ -47,8 +47,10 @@ h1{font-size:24px; font-weight:900; margin:0 0 4px; letter-spacing:.02em}
 .mode[aria-selected="true"]{color:var(--ink); border-bottom-color:var(--accent)}
 .mode:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
 .rule{font-size:14px; margin:14px 0 0; padding:10px 14px; background:var(--accent-soft); border-radius:8px}
-section{border-top:1px solid var(--line); padding:26px 0}
-section.first{border-top:none; padding-top:20px}
+.rule a{color:var(--accent); font-weight:700; text-decoration:underline; text-underline-offset:3px}
+.rule a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
+section{padding:20px 0 4px}
+section.first{padding-top:18px}
 .sec-label{font-size:12px; font-weight:700; color:var(--sub); letter-spacing:.14em; margin:0 0 16px}
 .grid{display:grid; grid-template-columns:1fr 1fr; gap:16px 24px}
 label{display:block; font-size:13px; font-weight:500; margin-bottom:4px}
@@ -90,6 +92,7 @@ td .small{display:block; font-size:12px; color:var(--sub); font-weight:400}
 .rev-out{font-size:15px; margin-top:12px}
 .rev-out b{font-size:22px; font-variant-numeric:tabular-nums}
 .fine{font-size:12px; color:var(--sub); margin-top:26px; border-top:1px solid var(--line); padding-top:14px}
+.sig{font-size:12px; color:var(--sub); text-align:center; margin-top:20px; letter-spacing:.08em}
 .hide{display:none}
 .lede a{color:var(--accent); font-weight:700; text-decoration:underline; text-underline-offset:3px}
 .lede a:focus-visible{outline:2px solid var(--accent); outline-offset:3px}
@@ -196,6 +199,7 @@ dialog li{margin-bottom:5px}
 </section>
 
 <p class="fine">依據：0050 含息 2008 到 2026、加權指數 1997 到 2026（不含息，嚴苛版），每個月份當起點各跑一次，借款利息照扣。保險絲＝跌破起始本金六成暫停提領、回到七成恢復，暫停期間靠壞年桶。動態的三條調整規則來自 GK（Guyton 與 Klinger 2006）護欄法則。此為歷史回測不是保證。</p>
+<p class="sig">made by Hsuan</p>
 
 <dialog id="ruleDlg">
   <div class="dlg-inner">
