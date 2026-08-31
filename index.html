@@ -128,7 +128,7 @@ dialog li{margin-bottom:5px}
   <button class="mode" id="tabFixed" role="tab" aria-selected="true">固定提領</button>
   <button class="mode" id="tabDyn" role="tab" aria-selected="false">動態提領</button>
 </div>
-<p class="rule" id="modeRule"></p>
+<p class="rule"><span id="modeRuleText"></span> <a href="#" id="modeRuleLink">看完整規則</a></p>
 
 <section class="first">
   <p class="sec-label">你的數字</p>
@@ -217,6 +217,31 @@ dialog li{margin-bottom:5px}
       <li>好年自動多領、壞年自動少領。金額自己縮水就是保護，所以不用保險絲</li>
       <li>領的加利息一年超過本金 6.8% 才需要三條調整規則（GK 護欄）：虧損年不加領；提領率飄高超過起始值 20% 就砍 10%；掉到 80% 以下就加 10%</li>
     </ul>
+    <svg width="100%" viewBox="0 0 680 490" role="img" style="margin-top:12px">
+      <title>護欄水位圖</title>
+      <desc>當前提領率超過上護欄砍一成，掉出下護欄加一成，中間不動作</desc>
+      <text x="265" y="30" font-size="14" font-weight="700" fill="var(--ink)" text-anchor="middle">當前提領率的水位（以起始 4% 為例）</text>
+      <rect x="225" y="70" width="80" height="84" fill="var(--bad-soft)" stroke="var(--bad)"/>
+      <rect x="225" y="154" width="80" height="192" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <rect x="225" y="346" width="80" height="84" fill="var(--warn-soft)" stroke="var(--warn)"/>
+      <line x1="217" y1="154" x2="331" y2="154" stroke="var(--bad)" stroke-width="2" stroke-dasharray="6 4"/>
+      <line x1="217" y1="346" x2="331" y2="346" stroke="var(--warn)" stroke-width="2" stroke-dasharray="6 4"/>
+      <line x1="233" y1="250" x2="297" y2="250" stroke="var(--sub)" stroke-width="2"/>
+      <text x="210" y="148" font-size="13" font-weight="700" text-anchor="end" fill="var(--bad)">4.8% 上護欄</text>
+      <text x="210" y="168" font-size="12" text-anchor="end" fill="var(--sub)">4% 加它的兩成</text>
+      <text x="210" y="246" font-size="13" font-weight="700" text-anchor="end" fill="var(--ink)">4.0% 起始</text>
+      <text x="210" y="372" font-size="13" font-weight="700" text-anchor="end" fill="var(--warn)">3.2% 下護欄</text>
+      <text x="210" y="392" font-size="12" text-anchor="end" fill="var(--sub)">4% 減它的兩成</text>
+      <text x="345" y="105" font-size="13" font-weight="700" fill="var(--bad)">衝過上護欄：領太兇</text>
+      <text x="345" y="126" font-size="12" fill="var(--sub)">今年金額砍一成：40 萬變 36 萬</text>
+      <text x="345" y="145" font-size="12" fill="var(--sub)">例：跌到 800 萬還領 40 萬 = 5%</text>
+      <text x="345" y="240" font-size="13" font-weight="700" fill="var(--accent)">在兩條護欄之間：不動作</text>
+      <text x="345" y="261" font-size="12" fill="var(--sub)">偏不到兩成，都當正常波動</text>
+      <text x="345" y="382" font-size="13" font-weight="700" fill="var(--warn)">掉出下護欄：領太少</text>
+      <text x="345" y="403" font-size="12" fill="var(--sub)">今年金額加一成：40 萬變 44 萬</text>
+      <text x="345" y="422" font-size="12" fill="var(--sub)">例：漲到 1,300 萬只領 40 萬 = 3.1%</text>
+      <text x="340" y="468" font-size="12" text-anchor="middle" fill="var(--sub)">當前提領率 ＝ 今年領的金額 ÷ 現在部位，水位是被部位漲跌推動的</text>
+    </svg>
     <h3>兩種都適用</h3>
     <ul>
       <li>借款利息每月自動扣帳，這個計算器和回測都已經把它算進去</li>
@@ -286,9 +311,9 @@ function setMode(m){
   $('rowDyn').classList.toggle('hide', m!=='dyn');
   $('dynExample').classList.toggle('hide', m!=='dyn');
   $('revSection').classList.toggle('hide', m==='dyn');
-  $('modeRule').textContent = m==='fixed'
-    ? '規則：金額寫死，每月一樣。只有一個例外，跌破保險絲就暫停，回來再繼續。'
-    : '規則只有一條：每年 1 月看一次部位，乘上提領率，就是今年的錢。好年自動多領，壞年自動少領。';
+  $('modeRuleText').textContent = m==='fixed'
+    ? '一句話：每月領固定的錢，跌破保險絲才暫停。'
+    : '一句話：每年 1 月看部位乘提領率，好年多領壞年少領。';
   calc();
 }
 function round1(x){ return Math.round(x*1000)/1000; }
@@ -381,14 +406,16 @@ function calc(){
 $('tabFixed').addEventListener('click',()=>setMode('fixed'));
 $('tabDyn').addEventListener('click',()=>setMode('dyn'));
 ['p0','w','debt','rate','s','revW','dynRate'].forEach(id=>$(id).addEventListener('input',calc));
-$('ruleLink').addEventListener('click',e=>{
+function openRules(e){
   e.preventDefault();
   const w=Math.max(0,+$('w').value||0);
   $('ruleMonthly').textContent=fmt1(w);
   $('ruleYearly').textContent=fmt1(w*12);
   $('ruleReserve').textContent=fmt(Math.round(w*20));
   $('ruleDlg').showModal();
-});
+}
+$('modeRuleLink').addEventListener('click',openRules);
+$('ruleLink').addEventListener('click',openRules);
 $('ruleClose').addEventListener('click',()=>$('ruleDlg').close());
 $('ruleDlg').addEventListener('click',e=>{if(e.target===$('ruleDlg'))$('ruleDlg').close();});
 $('histLink').addEventListener('click',e=>{e.preventDefault();$('histDlg').showModal();});
