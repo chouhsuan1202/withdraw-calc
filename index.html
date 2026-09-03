@@ -214,6 +214,7 @@ dialog li{margin-bottom:5px}
       <li>起手式（只做一次）：個股全換成 0050，撥約 <span id="ruleReserve">60</span> 萬放定存當「壞年桶」，銀行設定每月自動轉 <span id="ruleMonthly">3</span> 萬到生活戶頭</li>
       <li>每年 1 月賣出 <span id="ruleYearly">36</span> 萬放活存，供自動轉帳用。一年就這一個動作</li>
       <li>保險絲：部位跌破起始本金的六成，暫停提領，生活費改用壞年桶和租金；回到七成才恢復。規則寫死，不靠臨場判斷</li>
+      <li>上限：一年被拿走的總額（你領的加利息）不超過本金的 7.6%，6.4% 內最穩。照你現在填的數字，穩是每月 <span id="ruleSweet">3.0</span> 萬（一年 <span id="ruleSweetPct">3.6</span>%），上限是每月 <span id="ruleMax">4.0</span> 萬（一年 <span id="ruleMaxPct">4.8</span>%）。超過上限會開始碰到「這幾個月不能領」</li>
     </ul>
     </div>
     <div id="secDyn" class="hide">
@@ -422,6 +423,10 @@ function openRules(e){
   $('ruleMonthly').textContent=fmt1(w);
   $('ruleYearly').textContent=fmt1(w*12);
   $('ruleReserve').textContent=fmt(Math.round(w*20));
+  const rp=Math.max(0,+$('p0').value||0), rd=Math.max(0,+$('debt').value||0), rr=Math.max(0,+$('rate').value||0)/100;
+  const rsw=Math.max(0,(rp*0.064-rd*rr)/12), rmx=Math.max(0,(rp*0.076-rd*rr)/12);
+  $('ruleSweet').textContent=fmt1(rsw); $('ruleMax').textContent=fmt1(rmx);
+  $('ruleSweetPct').textContent=rp>0?(rsw*12/rp*100).toFixed(1):'0'; $('ruleMaxPct').textContent=rp>0?(rmx*12/rp*100).toFixed(1):'0';
   $('secFixed').classList.toggle('hide', mode!=='fixed');
   $('secDyn').classList.toggle('hide', mode!=='dyn');
   $('ruleTitle').textContent = mode==='fixed' ? '固定提領的規則' : '動態提領的規則';
