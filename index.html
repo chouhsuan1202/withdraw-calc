@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 </head>
 <body>
 <title>0050 提領計算機</title>
@@ -36,7 +36,7 @@ body{
   font-family:"Noto Sans TC",-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;
   line-height:1.6;
 }
-main{max-width:620px; margin:0 auto; padding:40px 22px 72px}
+main{max-width:620px; margin:0 auto; padding:40px 22px calc(140px + env(safe-area-inset-bottom, 0px))}
 h1{font-size:24px; font-weight:900; margin:0 0 4px; letter-spacing:.02em}
 .lede{color:var(--sub); font-size:13px; margin:0 0 26px}
 .modes{display:flex; gap:26px; border-bottom:1px solid var(--line); margin-bottom:6px}
@@ -81,10 +81,12 @@ input[type=range]:focus-visible{outline:2px solid var(--accent); outline-offset:
 .verdict.warn .word{color:var(--warn)}
 .verdict.bad .word{color:var(--bad)}
 .verdict .why{font-size:13px; color:var(--sub)}
-table{width:100%; border-collapse:collapse; font-size:14px}
+.tbl-wrap{overflow-x:auto}
+table{width:100%; border-collapse:collapse; font-size:14px; table-layout:fixed}
 td{padding:9px 0; border-bottom:1px dashed var(--line); vertical-align:baseline}
-td:last-child{text-align:right; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
-td .small{display:block; font-size:12px; color:var(--sub); font-weight:400}
+td:first-child{width:60%}
+td:last-child{text-align:right; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap; padding-left:10px}
+td .small{display:block; font-size:12px; color:var(--sub); font-weight:400; white-space:normal}
 .gk{font-size:13px; color:var(--sub); margin:14px 0 0; padding-left:1.2em}
 .gk li{margin-bottom:4px}
 .rev{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; font-size:15px}
@@ -168,22 +170,22 @@ dialog li{margin-bottom:5px}
 
 <section>
   <p class="sec-label">這個情境下的每月數字</p>
-  <table>
+  <div class="tbl-wrap"><table>
     <tr id="rowFixed"><td>每月拿到<span class="small">金額寫死不變；唯一例外是保險絲觸發時暫停</span></td><td id="oFixed">3.0 萬</td></tr>
     <tr id="rowMax"><td>最多可以領<span class="small">跟著本金、借款、利率一起算；超過上限，長期會把本金領薄</span></td><td id="oMax">穩 3.0 萬 · 上限 4.0 萬</td></tr>
     <tr id="rowDyn" class="hide"><td>每月拿到<span class="small">1 月部位 × 提領率 ÷ 12</span></td><td id="oDyn">3.3 萬</td></tr>
     <tr><td>要繳的利息<span class="small">借款 × 利率 ÷ 12，回測已把這筆算進去</span></td><td id="oInt">2.3 萬</td></tr>
     <tr><td>你設定的領法安不安全（評的是設定，不是現在的漲跌）<span class="small" id="safeNote"></span></td><td id="oSafe">安全</td></tr>
-  </table>
+  </table></div>
 </section>
 
 <section class="hide" id="dynExample">
   <p class="sec-label">動態的整個遊戲規則就這張表</p>
-  <table>
+  <div class="tbl-wrap"><table>
     <tr><td id="exL1">1 月那天部位 700 萬（跌三成）</td><td id="exV1">一年 28 萬，每月 2.3 萬</td></tr>
     <tr><td id="exL2">1 月那天部位 1,000 萬（你的本金）</td><td id="exV2">一年 40 萬，每月 3.3 萬</td></tr>
     <tr><td id="exL3">1 月那天部位 1,300 萬（漲三成）</td><td id="exV3">一年 52 萬，每月 4.3 萬</td></tr>
-  </table>
+  </table></div>
   <p class="pct" style="margin-top:8px; color:var(--sub)">根據的東西只有一個：那天帳戶值多少。沒有別的條件、沒有人為判斷。</p>
 </section>
 
