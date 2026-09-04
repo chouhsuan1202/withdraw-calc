@@ -376,7 +376,10 @@ const fmt1=n=>n.toLocaleString('zh-TW',{minimumFractionDigits:1,maximumFractionD
 let mode='fixed';
 function setMode(m){
   mode=m;
-  try{ if(location.hash!=='#'+m) history.replaceState(null,'','#'+m); }catch(e){}
+  try{
+    if(m==='dyn'){ if(location.hash!=='#dyn') history.replaceState(null,'','#dyn'); }
+    else if(location.hash){ history.replaceState(null,'',location.pathname+location.search); }
+  }catch(e){}
   $('tabFixed').setAttribute('aria-selected', m==='fixed');
   $('tabDyn').setAttribute('aria-selected', m==='dyn');
   $('boxW').classList.toggle('hide', m!=='fixed');
