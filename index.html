@@ -327,8 +327,8 @@ function setMode(m){
   $('dynExample').classList.toggle('hide', m!=='dyn');
   $('revSection').classList.toggle('hide', m==='dyn');
   $('modeRuleText').textContent = m==='fixed'
-    ? '一句話：每月領固定的錢，跌破保險絲才暫停。'
-    : '一句話：每年 1 月看部位乘提領率，好年多領壞年少領。';
+    ? '每月領固定的錢，跌破保險絲才暫停。'
+    : '每年 1 月看部位乘提領率，好年多領壞年少領。';
   calc();
 }
 function round1(x){ return Math.round(x*1000)/1000; }
