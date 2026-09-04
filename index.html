@@ -211,12 +211,22 @@ dialog li{margin-bottom:5px}
       <h2 id="ruleTitle">規則</h2>
       <button class="dlg-close" id="ruleClose">關閉 ✕</button>
     </div>
+    <div id="originFixed">
     <h3>這套規則怎麼來的：4% 法則的台灣有借款版</h3>
     <ul>
       <li>1994 年美國一位財務規劃師 Bengen 算的：拿美國 1926 年以後的股票和債券資料，假設退休第一年領 4%、之後每年跟著物價加領，結果不管從哪一年退休，30 年都領不完。1998 年三位大學教授再做成成功率表格（叫 Trinity 研究），4% 才變成全世界都在講的數字</li>
       <li>後來大家發現美國是這一百年運氣最好的市場，換別的國家算，安全的數字會比 4% 低一點。所以 4% 是起點，不是保證</li>
       <li>這個計算器沒有照抄美國數字，是拿 0050 自己的歷史重跑。有借款時帳戶一年被拿走兩筆（你領的加利息），跑出來的是「兩筆加起來不超過本金 7.6%，6.4% 內最穩」。固定 3 萬那版還比原版保守，因為金額不跟著物價加</li>
     </ul>
+    </div>
+    <div id="originDyn" class="hide">
+    <h3>這套規則怎麼來的：修 4% 法則的毛病</h3>
+    <ul>
+      <li>起點一樣是 1994 年 Bengen 的 4% 法則：第一年領 4%，之後每年跟物價加領，金額不看股市</li>
+      <li>後來發現固定領有兩個毛病：壞年開局可能領到見底；好年又留太多錢沒花到。動態就是修這兩個：領的金額跟著部位走，壞年自動少領、好年自動多領。清流君講的 GK 護欄（2006 年）就是其中一種</li>
+      <li>這裡的門檻一樣拿 0050 自己的歷史重跑：領的加利息，一年在本金 6.8% 內不用調整，到 8.8% 要配三條規則</li>
+    </ul>
+    </div>
     <div id="secFixed">
     <h3>做法</h3>
     <ul>
@@ -472,6 +482,8 @@ function openRules(e){
   $('ruleSweetPct').textContent=rp>0?(rsw*12/rp*100).toFixed(1):'0'; $('ruleMaxPct').textContent=rp>0?(rmx*12/rp*100).toFixed(1):'0';
   $('secFixed').classList.toggle('hide', mode!=='fixed');
   $('secDyn').classList.toggle('hide', mode!=='dyn');
+  $('originFixed').classList.toggle('hide', mode!=='fixed');
+  $('originDyn').classList.toggle('hide', mode!=='dyn');
   $('ruleTitle').textContent = mode==='fixed' ? '固定提領的規則' : '動態提領的規則';
   $('ruleDlg').showModal();
 }
