@@ -403,7 +403,9 @@ function calc(){
   $('wPct').textContent='本金 '+(wRate*100).toFixed(1)+'%'+(drag>0?' 加利息共 '+(totalFixed*100).toFixed(1)+'%':'')+'（上限 7.6%）';
   $('wPct').style.color=totalFixed<=0.064?'var(--accent)':totalFixed<=0.076?'var(--warn)':'var(--bad)';
   $('oMax').textContent='穩 '+fmt1(sweetW)+' 萬 · 上限 '+fmt1(maxW)+' 萬';
-  $('dynPct').textContent='＝ 1 月部位 × '+(dynR*100).toFixed(1)+'% ÷ 12';
+  const tDyn=dynR+drag;
+  $('dynPct').textContent='每月拿 '+fmt1(P0*dynR/12)+' 萬'+(drag>0?'，加利息共 '+(tDyn*100).toFixed(1)+'%':'')+'（上限 8.8%）';
+  $('dynPct').style.color=tDyn<=0.068?'var(--accent)':tDyn<=0.088?'var(--warn)':'var(--bad)';
   const v=$('verdict'), vw=$('vWord'), vy=$('vWhy');
   let fixedGet=w, fixedGetText;
   if(pos<stopLine) fixedGet=0;
