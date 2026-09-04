@@ -376,6 +376,7 @@ const fmt1=n=>n.toLocaleString('zh-TW',{minimumFractionDigits:1,maximumFractionD
 let mode='fixed';
 function setMode(m){
   mode=m;
+  try{ if(location.hash!=='#'+m) history.replaceState(null,'','#'+m); }catch(e){}
   $('tabFixed').setAttribute('aria-selected', m==='fixed');
   $('tabDyn').setAttribute('aria-selected', m==='dyn');
   $('boxW').classList.toggle('hide', m!=='fixed');
@@ -523,7 +524,8 @@ $('methodLink').addEventListener('click',e=>{
 });
 $('methodClose').addEventListener('click',()=>$('methodDlg').close());
 $('methodDlg').addEventListener('click',e=>{if(e.target===$('methodDlg'))$('methodDlg').close();});
-setMode('fixed');
+setMode((typeof location!=='undefined' && location.hash==='#dyn') ? 'dyn' : 'fixed');
+try{ addEventListener('hashchange',()=>{ const m=location.hash==='#dyn'?'dyn':'fixed'; if(m!==mode) setMode(m); }); }catch(e){}
 </script>
 
 </body>
