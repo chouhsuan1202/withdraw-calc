@@ -175,7 +175,7 @@ dialog li{margin-bottom:5px}
     <tr id="rowMax"><td>最多可以領<span class="small">跟著本金、借款、利率一起算；超過上限，長期會把本金領薄</span></td><td id="oMax">穩 3.0 萬 · 上限 4.0 萬</td></tr>
     <tr id="rowDyn" class="hide"><td>每月拿到<span class="small">1 月部位 × 提領率 ÷ 12</span></td><td id="oDyn">3.3 萬</td></tr>
     <tr><td>要繳的利息<span class="small">借款 × 利率 ÷ 12，回測已把這筆算進去</span></td><td id="oInt">2.3 萬</td></tr>
-    <tr><td>你設定的領法安不安全（評的是設定，不是現在的漲跌）<span class="small" id="safeNote"></span></td><td id="oSafe">安全</td></tr>
+    <tr><td>安不安全<span class="small" id="safeNote"></span></td><td id="oSafe">安全</td></tr>
   </table></div>
 </section>
 
@@ -398,13 +398,13 @@ function calc(){
   $('oInt').textContent=fmt1(D*r/12)+' 萬';
   const safe=$('oSafe'), note=$('safeNote');
   if(mode==='fixed'){
-    note.textContent='規則：帳戶一年被拿走的總額（你領的＋利息）在本金 6.4% 內最穩，7.6% 是上限';
+    note.textContent='領的加利息，本金 6.4% 內最穩，7.6% 是上限';
     if(totalFixed<=0.064){safe.textContent='安全（穩的範圍內）';safe.style.color='var(--accent)';}
     else if(totalFixed<=0.076){safe.textContent='可以（在上限內）';safe.style.color='var(--warn)';}
     else{safe.textContent='太多，會斷炊';safe.style.color='var(--bad)';}
   }else{
     const totalDyn=round1(dynR+drag);
-    note.textContent='規則：領的比率＋利息一年在本金 6.8% 內不用調整；到 8.8% 要配三條規則';
+    note.textContent='領的加利息，本金 6.8% 內免調整，8.8% 要配三條規則';
     if(totalDyn<=0.068){safe.textContent='安全';safe.style.color='var(--accent)';}
     else if(totalDyn<=0.088){safe.textContent='要配三條規則才行';safe.style.color='var(--warn)';}
     else{safe.textContent='太多，部位會越領越薄';safe.style.color='var(--bad)';}
