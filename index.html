@@ -359,7 +359,7 @@ function calc(){
   const totalFixed=round1(wRate+drag);
   const sweetW=Math.max(0,(P0*0.064-D*r)/12);
   const maxW=Math.max(0,(P0*0.076-D*r)/12);
-  $('wPct').textContent='＝ 一年提領本金的 '+(wRate*100).toFixed(1)+'%'+(drag>0?'，加利息共抽 '+(totalFixed*100).toFixed(1)+'%':'')+'（上限 7.6%）';
+  $('wPct').textContent='本金 '+(wRate*100).toFixed(1)+'%'+(drag>0?' 加利息共 '+(totalFixed*100).toFixed(1)+'%':'')+'（上限 7.6%）';
   $('wPct').style.color=totalFixed<=0.064?'var(--accent)':totalFixed<=0.076?'var(--warn)':'var(--bad)';
   $('oMax').textContent='穩 '+fmt1(sweetW)+' 萬 · 上限 '+fmt1(maxW)+' 萬';
   $('dynPct').textContent='＝ 1 月部位 × '+(dynR*100).toFixed(1)+'% ÷ 12';
