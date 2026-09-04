@@ -377,6 +377,10 @@ function calc(){
       v.className='verdict warn'; vw.textContent='看之前的狀態';
       vy.textContent='部位在兩條線之間：原本在領就繼續領，原本暫停就繼續暫停，等站回 '+fmt(backLine)+' 萬。';
       fixedGetText=fmt1(w)+' 萬或 0（看之前狀態）';
+    }else if(totalFixed>0.076){
+      v.className='verdict bad'; vw.textContent='領太多了';
+      vy.textContent='這個月部位夠、領得出來，但金額太高（本金 '+(totalFixed*100).toFixed(1)+'%，上限 7.6%）。長期會把本金領薄，撐不到老。降到每月 '+fmt1(maxW)+' 萬以內。';
+      fixedGetText=fmt1(w)+' 萬（太多）';
     }else{
       v.className='verdict ok'; vw.textContent='照領 '+fmt1(w)+' 萬';
       vy.textContent='部位在安全區，什麼都不用做，金額不變。';
