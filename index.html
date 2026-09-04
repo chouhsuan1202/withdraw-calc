@@ -324,7 +324,7 @@ dialog li{margin-bottom:5px}
 <dialog id="methodDlg">
   <div class="dlg-inner">
     <div class="dlg-head">
-      <h2>6.4% 和 7.6% 怎麼算出來的</h2>
+      <h2 id="methodTitle">6.4% 和 7.6% 怎麼算出來的</h2>
       <button class="dlg-close" id="methodClose">關閉 ✕</button>
     </div>
     <p class="big-cap">不是抄美國的 4%，是拿 0050 自己的歷史重跑。五步：</p>
@@ -332,6 +332,7 @@ dialog li{margin-bottom:5px}
     <ul>
       <li>0050 從 2008 年底到 2026 年，每月價格，股息已算進去。另外拿加權指數 1997 年起當「嚴苛版」，不含股息，故意比真實世界爛</li>
     </ul>
+    <div id="methodFixed">
     <h3>2. 模擬一個帳戶</h3>
     <ul>
       <li>1,000 萬在 0050、欠銀行 1,000 萬。每個月：帳戶乘當月漲跌、扣領走的錢、扣利息。跌破 600 萬停領，回 700 萬再領</li>
@@ -346,7 +347,25 @@ dialog li{margin-bottom:5px}
       <li>3、4、5、6 萬各跑一輪。3 萬和 4 萬保險絲一次都沒響；5 萬會停 18 個月；6 萬會停 37 個月、15 年後四成還不清貸款。所以 4 萬是上限</li>
       <li>把金額換成占本金的比例：4 萬 + 利息 = 7.6%（上限），3 萬 + 利息 = 6.4%（最穩）。用比例，計算器才能套到不同本金和借款</li>
     </ul>
-    <p class="big-cap" style="margin-top:14px">兩個誠實提醒：0050 資料從 2008 年底（金融海嘯谷底附近）開始，是順風年代，所以另外跑嚴苛版當底線。回測裡利息從股票帳戶扣，現實是三民租金在付，所以現實比回測寬鬆。</p>
+    </div>
+    <div id="methodDyn" class="hide">
+    <h3>2. 模擬一個帳戶</h3>
+    <ul>
+      <li>1,000 萬在 0050、欠銀行 1,000 萬。每年 1 月看部位，乘提領率就是那年領的錢，除 12 按月扣；每月再扣利息。沒有保險絲，部位縮水金額自動變少</li>
+    </ul>
+    <h3>3. 每個月都當一次「開始領的那天」</h3>
+    <ul>
+      <li>0050 歷史每個月當起點各跑一遍，共 153 條路；嚴苛版每個月起點跑 15 年。涵蓋最高點到最低點開始的所有情況</li>
+    </ul>
+    <h3>4. 每條路記：有沒有領到歸零、最差結局剩多少</h3>
+    <h3>5. 換不同提領率重跑，找邊界</h3>
+    <ul>
+      <li>部位 4%：兩份歷史全部起點零破產。0050 最差結局剩 1,825 萬；嚴苛版最差只剩 47 萬，活著但很薄</li>
+      <li>動態不會領到歸零（永遠是比例），風險是「越領越薄」。提領率拉高，嚴苛版的最差結局就往下掉，超過 6% 就要靠 GK 三條規則砍領才撐得住</li>
+      <li>換成占本金的比例：4% + 利息 2.76% = 6.8%（免調整），6% + 利息 = 8.8%（要配三條規則）。用比例，計算器才能套到不同本金和借款</li>
+    </ul>
+    </div>
+    <p class="big-cap" style="margin-top:14px">兩個誠實提醒：0050 資料從 2008 年底（金融海嘯谷底附近）開始，是順風年代，所以另外跑嚴苛版當底線。回測裡利息從股票帳戶扣；若利息另有來源（例如租金），現實會比回測寬鬆。</p>
   </div>
 </dialog>
 </main>
@@ -495,7 +514,13 @@ $('ruleDlg').addEventListener('click',e=>{if(e.target===$('ruleDlg'))$('ruleDlg'
 $('histLink').addEventListener('click',e=>{e.preventDefault();$('histDlg').showModal();});
 $('histClose').addEventListener('click',()=>$('histDlg').close());
 $('histDlg').addEventListener('click',e=>{if(e.target===$('histDlg'))$('histDlg').close();});
-$('methodLink').addEventListener('click',e=>{e.preventDefault();$('methodDlg').showModal();});
+$('methodLink').addEventListener('click',e=>{
+  e.preventDefault();
+  $('methodFixed').classList.toggle('hide', mode!=='fixed');
+  $('methodDyn').classList.toggle('hide', mode!=='dyn');
+  $('methodTitle').textContent = mode==='fixed' ? '6.4% 和 7.6% 怎麼算出來的' : '6.8% 和 8.8% 怎麼算出來的';
+  $('methodDlg').showModal();
+});
 $('methodClose').addEventListener('click',()=>$('methodDlg').close());
 $('methodDlg').addEventListener('click',e=>{if(e.target===$('methodDlg'))$('methodDlg').close();});
 setMode('fixed');
