@@ -39,11 +39,19 @@
   /* 浮點數比較的容許誤差，避免 0.064000000001 這種雜訊被判成超標 */
   var EPS = 1e-9;
 
+  /*
+   * 輸入範圍。金額欄位（萬）最多 10 億萬（10 兆元），本金至少 0.01 萬。
+   * 沒有這兩條線時，填 1e308 會算出「∞ 萬」「非數值 萬」，
+   * 填極小的本金會算出「Infinity%」。
+   */
+  var LIMITS = Object.freeze({ maxAmount: 1e9, minPrincipal: 0.01 });
+
   /**
    * 解析一個輸入欄位的字串。
    * @param {string} raw 輸入框的 value
-   * @param {{positive?: boolean, maxValue?: number}} opts
+   * @param {{positive?: boolean, minValue?: number, maxValue?: number}} opts
    *   positive：必須大於 0（例如本金）；否則只要大於等於 0
+   *   minValue：大於 0 之後的下限（例如本金至少 0.01 萬）
    *   maxValue：上限（例如百分比欄位不能超過 100）
    * @returns {{ok: boolean, value: number, error: string}}
    */
@@ -55,10 +63,18 @@
     if (!Number.isFinite(n)) return { ok: false, value: NaN, error: '請填一個數字' };
     if (n < 0) return { ok: false, value: n, error: '不能是負數' };
     if (opts.positive && n === 0) return { ok: false, value: n, error: '要大於 0' };
+    if (opts.minValue != null && n < opts.minValue) {
+      return { ok: false, value: n, error: '至少要 ' + limitText(opts.minValue) };
+    }
     if (opts.maxValue != null && n > opts.maxValue) {
-      return { ok: false, value: n, error: '不能超過 ' + opts.maxValue };
+      return { ok: false, value: n, error: '不能超過 ' + limitText(opts.maxValue) };
     }
     return { ok: true, value: n, error: '' };
+  }
+
+  /* 錯誤訊息裡的上下限：千分位，最多兩位小數（100000000 顯示成 100,000,000） */
+  function limitText(v) {
+    return v.toLocaleString('zh-TW', { maximumFractionDigits: 2 });
   }
 
   /** 一年利息（萬）：借款 × 年利率 */
@@ -235,6 +251,7 @@
     THRESHOLDS: THRESHOLDS,
     FUSE: FUSE,
     RESERVE_MONTHS: RESERVE_MONTHS,
+    LIMITS: LIMITS,
     parseField: parseField,
     annualInterest: annualInterest,
     monthlyInterest: monthlyInterest,

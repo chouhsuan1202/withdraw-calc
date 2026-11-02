@@ -131,6 +131,54 @@ const text = (page, id) => page.$eval('#' + id, el => el.textContent.trim());
     await setVal(page, 'revW', '3');
   });
 
+  /* 2b. 極端輸入：超出範圍要擋下，範圍內最大最小都不能出現 ∞、非數值、科學記號，也不能撐破手機版面 */
+  await check('本金 1e308、借款 1e308、極小本金都要擋下', async () => {
+    await page.goto(PAGE);
+    await setVal(page, 'p0', '1e308');
+    assert.equal(await text(page, 'p0Err'), '不能超過 1,000,000,000');
+    assert.equal(await text(page, 'pos'), '-');
+    await setVal(page, 'p0', '1e-320');
+    assert.equal(await text(page, 'p0Err'), '至少要 0.01');
+    await setVal(page, 'p0', '1000');
+    await setVal(page, 'debt', '1e308');
+    assert.equal(await text(page, 'debtErr'), '不能超過 1,000,000,000');
+    assert.equal(await text(page, 'revOut'), '-');
+    await setVal(page, 'debt', '1000');
+    await setVal(page, 'w', '1e308');
+    assert.equal(await text(page, 'wErr'), '不能超過 1,000,000,000');
+    await setVal(page, 'w', '3');
+    await setVal(page, 'revW', '1e308');
+    assert.equal(await text(page, 'revWErr'), '不能超過 1,000,000,000');
+    assert.equal(await text(page, 'revOut'), '先填想領的金額');
+  });
+  /* 提領率用輸入框自己的 max=12；10 億萬配 100% 時表格會在 .tbl-wrap 裡橫捲，頁面本身不會撐破 */
+  const EXTREMES = [
+    { p0: 1e9, w: 1e9, debt: 1e9, rate: 100, s: 100, dynRate: 12, revW: 1e9 },
+    { p0: 1e9, w: 0, debt: 0, rate: 0, s: 100, dynRate: 100, revW: 1e9 },
+    { p0: 0.01, w: 1e9, debt: 1e9, rate: 100, s: -60, dynRate: 100, revW: 0.01 },
+    { p0: 0.01, w: 0, debt: 0, rate: 0, s: -60, dynRate: 0, revW: 1e9 }
+  ];
+  for (const ex of EXTREMES) {
+    for (const m of ['fixed', 'dyn']) {
+      await check('極端值 375px ' + m + ' ' + JSON.stringify(ex), async () => {
+        await page.setViewportSize({ width: 375, height: 900 });
+        await page.goto('about:blank');
+        await page.goto(PAGE + (m === 'dyn' ? '#dyn' : ''));
+        for (const [id, v] of Object.entries(ex)) await setVal(page, id, v);
+        const r = await page.evaluate(() => ({
+          body: document.querySelector('main').innerText,
+          doc: document.documentElement.scrollWidth, vw: innerWidth,
+          tables: [...document.querySelectorAll('.tbl-wrap')].filter(e => e.offsetParent).map(e => [e.scrollWidth, e.clientWidth])
+        }));
+        assert.ok(!/∞|非數值|NaN|Infinity|\de[+-]\d/.test(r.body), r.body.match(/.*(∞|非數值|NaN|Infinity|\de[+-]\d).*/)?.[0]);
+        assert.ok(!/先修正/.test(r.body), '範圍內的值不該被擋');
+        assert.ok(r.doc <= r.vw, '頁面寬 ' + r.doc + ' 超過視窗 ' + r.vw);
+        if (ex.dynRate <= 12) r.tables.forEach(([sw, cw]) => assert.ok(sw <= cw, '表格內容寬 ' + sw + ' 超過 ' + cw));
+      });
+    }
+  }
+  await page.setViewportSize({ width: 1280, height: 900 });
+
   /* 3. 鍵盤操作 */
   await check('分頁可用方向鍵切換，網址 hash 跟著變', async () => {
     await page.goto(PAGE);
@@ -213,6 +261,34 @@ const text = (page, id) => page.$eval('#' + id, el => el.textContent.trim());
     await page.screenshot({ path: path.join(SHOTS, 'mobile-dark.png') });
     await page.emulateMedia({ colorScheme: 'light' });
   }
+
+  /* 5. 舊瀏覽器（沒有 showModal，例如 iOS Safari 15.4 以前）：對話框仍能開關，不丟錯 */
+  await check('沒有 showModal 時對話框改用 open 屬性', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 375, height: 800 } });
+    await ctx.addInitScript(() => {
+      delete HTMLDialogElement.prototype.showModal;
+      delete HTMLDialogElement.prototype.close;
+    });
+    const old = await ctx.newPage();
+    const oldErrors = [];
+    old.on('pageerror', e => oldErrors.push(e.message));
+    await old.goto(PAGE);
+    for (const [btn, dlg, close] of [['histLink', 'histDlg', 'histClose'], ['modeRuleLink', 'ruleDlg', 'ruleClose'], ['methodLink', 'methodDlg', 'methodClose']]) {
+      assert.equal(await old.isVisible('#' + dlg), false, dlg + ' 一開始不該顯示');
+      await old.click('#' + btn);
+      assert.equal(await old.isVisible('#' + dlg), true, dlg + ' 點了要打開');
+      const box = await old.$eval('#' + dlg, d => d.getBoundingClientRect().toJSON());
+      assert.ok(box.left >= 0 && box.right <= 375, dlg + ' 超出畫面 ' + JSON.stringify(box));
+      await old.click('#' + close);
+      assert.equal(await old.isVisible('#' + dlg), false, dlg + ' 關閉鈕要有效');
+      assert.equal(await old.evaluate(() => document.activeElement.id), btn);
+    }
+    await old.click('#histLink');
+    await old.keyboard.press('Escape');
+    assert.equal(await old.isVisible('#histDlg'), false, 'Esc 要能關');
+    assert.deepEqual(oldErrors, []);
+    await ctx.close();
+  });
 
   await check('沒有 console error', async () => assert.deepEqual(errors, []));
   await browser.close();

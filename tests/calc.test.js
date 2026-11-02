@@ -57,6 +57,46 @@ test('parseField 上限', () => {
 test('parseField 極大值仍是合法數字', () => {
   assert.equal(C.parseField('1e15').ok, true);
 });
+test('parseField 下限：0 仍說要大於 0，大於 0 但太小說至少多少', () => {
+  const opts = { positive: true, minValue: C.LIMITS.minPrincipal };
+  assert.equal(C.parseField('0', opts).error, '要大於 0');
+  assert.equal(C.parseField('0.001', opts).error, '至少要 0.01');
+  assert.equal(C.parseField('1e-320', opts).error, '至少要 0.01');
+  assert.equal(C.parseField('0.01', opts).ok, true);
+});
+test('parseField 金額上限：訊息有千分位，1e308 不會溜過去', () => {
+  const opts = { maxValue: C.LIMITS.maxAmount };
+  assert.equal(C.parseField('1000000000', opts).ok, true);
+  assert.equal(C.parseField('1000000000.1', opts).error, '不能超過 1,000,000,000');
+  assert.equal(C.parseField('1e308', opts).error, '不能超過 1,000,000,000');
+});
+
+/* ---------- 極端輸入：範圍內的任何組合，畫面上都不能出現 ∞、非數值、科學記號 ---------- */
+test('極端輸入組合的輸出都是正常數字', () => {
+  const L = C.LIMITS;
+  const amounts = [0, L.minPrincipal, 1, L.maxAmount];
+  const rates = [0, 0.0001, 1];
+  const bad = /∞|非數值|NaN|Infinity|e[+-]/;
+  amounts.filter(a => a > 0).forEach(p0 => amounts.forEach(w => amounts.forEach(debt => rates.forEach(rate => {
+    const tag = JSON.stringify({ p0, w, debt, rate });
+    const f = C.fixedSummary({ principal: p0, monthly: w, debt, rate });
+    const d = C.dynSummary({ principal: p0, dynRate: rate, debt, rate });
+    [-0.6, 1].forEach(s => {
+      const pos = C.positionAfter(p0, s);
+      const texts = [
+        C.fmtInt(pos), C.pct(f.withdrawRate), C.pctUp(f.totalRate), C.pctUp(d.totalRate),
+        C.fmt1Down(f.sweetMonthly), C.fmt1Down(f.maxMonthly), C.fmt1(f.interestMonthly),
+        C.fmt1(C.dynMonthly(pos, rate)), C.fmt1(d.monthlyAtStart), C.fmt1(w), C.fmt1(w * 12),
+        C.fmtInt(C.reserveFor(w)), C.fmtInt(C.fuseLines(p0).stop)
+      ];
+      if (w > 0) {
+        const n = C.requiredPrincipal(w, debt, rate);
+        texts.push(C.fmtInt(n.atMax), C.fmtInt(n.atSweet));
+      }
+      texts.forEach(t => assert.ok(!bad.test(t), tag + ' 輸出 ' + t));
+    });
+  }))));
+});
 
 /* ---------- 利息 ---------- */
 test('利息：1000 萬 × 2.76%', () => {
