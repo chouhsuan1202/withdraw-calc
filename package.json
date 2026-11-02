@@ -1,0 +1,9 @@
+{
+  "name": "withdraw-calc",
+  "private": true,
+  "description": "0050 提領計算機",
+  "scripts": {
+    "test": "node tests/calc.test.js",
+    "test:e2e": "node tests/e2e.js"
+  }
+}
