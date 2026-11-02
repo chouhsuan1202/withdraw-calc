@@ -39,7 +39,9 @@ body{
 main{max-width:620px; margin:0 auto; padding:40px 22px calc(140px + env(safe-area-inset-bottom, 0px))}
 h1{font-size:24px; font-weight:900; margin:0 0 4px; letter-spacing:.02em}
 .lede{color:var(--sub); font-size:13px; margin:0 0 26px}
-.modes{display:flex; gap:26px; border-bottom:1px solid var(--line); margin-bottom:6px}
+.modes{display:flex; border-bottom:1px solid var(--line); margin-bottom:6px}
+/* 用 margin 不用 flex gap：iOS Safari 14.1 以前不支援 flex gap，兩個分頁會黏在一起 */
+.mode + .mode{margin-left:26px}
 .mode{
   background:none; border:none; padding:8px 2px 10px; font:inherit; font-size:15px; font-weight:700;
   color:var(--sub); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-1px;
@@ -115,6 +117,9 @@ dialog{
   background:var(--bg); color:var(--ink);
 }
 dialog::backdrop{background:rgba(0,0,0,.45)}
+/* 不支援 <dialog> 的舊瀏覽器：沒開時藏起來，開了就置中浮在上面 */
+dialog:not([open]){display:none}
+dialog.dlg-fallback{display:block; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); margin:0; z-index:10; box-shadow:0 0 0 100vmax rgba(0,0,0,.45)}
 .dlg-inner{padding:26px 26px 30px; overflow-y:auto; max-height:80vh}
 .dlg-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px}
 .dlg-head h2{font-size:18px; font-weight:900; margin:0}
@@ -409,13 +414,14 @@ const TAB_IDS=['tabFixed','tabDyn'];
 let mode='fixed';
 
 /* 各欄位的名稱與驗證規則 */
+const MAX=C.LIMITS.maxAmount;
 const FIELDS={
-  p0:{name:'起始本金', opts:{positive:true}},
-  w:{name:'每月想領', opts:{}},
+  p0:{name:'起始本金', opts:{positive:true, minValue:C.LIMITS.minPrincipal, maxValue:MAX}},
+  w:{name:'每月想領', opts:{maxValue:MAX}},
   dynRate:{name:'一年提領部位的比例', opts:{maxValue:100}},
-  debt:{name:'借款', opts:{}},
+  debt:{name:'借款', opts:{maxValue:MAX}},
   rate:{name:'借款年利率', opts:{maxValue:100}},
-  revW:{name:'想每月穩定領', opts:{positive:true}}
+  revW:{name:'想每月穩定領', opts:{positive:true, maxValue:MAX}}
 };
 
 /* 讀一個欄位並更新它的錯誤提示；回傳 parseField 的結果 */
@@ -598,12 +604,35 @@ TAB_IDS.forEach((id,idx)=>{
 });
 ['p0','w','debt','rate','s','revW','dynRate'].forEach(id=>$(id).addEventListener('input',calc));
 
-/* 對話框：點背景或關閉鈕關閉；Esc 由瀏覽器處理，關閉後焦點回到開啟的按鈕 */
+/*
+ * 對話框：點背景或關閉鈕關閉；Esc 由瀏覽器處理，關閉後焦點回到開啟的按鈕。
+ * 舊版瀏覽器（iOS Safari 15.4 以前）沒有 showModal：改成加 open 屬性顯示，
+ * 關閉時拿掉並把焦點還給開啟的按鈕，避免按了沒反應還丟錯。
+ */
+const HAS_MODAL=typeof document.createElement('dialog').showModal==='function';
+let dlgOpener=null;
+function openDialog(d){
+  if(HAS_MODAL){ d.showModal(); return; }
+  dlgOpener=document.activeElement;
+  d.classList.add('dlg-fallback');
+  d.setAttribute('open','');
+}
+function closeDialog(d){
+  if(HAS_MODAL){ d.close(); return; }
+  d.removeAttribute('open');
+  d.classList.remove('dlg-fallback');
+  if(dlgOpener && dlgOpener.focus) dlgOpener.focus();
+  dlgOpener=null;
+}
 function wireDialog(dlgId, closeId){
   const d=$(dlgId);
-  $(closeId).addEventListener('click',()=>d.close());
-  d.addEventListener('click',e=>{ if(e.target===d) d.close(); });
+  $(closeId).addEventListener('click',()=>closeDialog(d));
+  d.addEventListener('click',e=>{ if(e.target===d) closeDialog(d); });
 }
+if(!HAS_MODAL) document.addEventListener('keydown',e=>{
+  const d=document.querySelector('dialog.dlg-fallback');
+  if(d && e.key==='Escape') closeDialog(d);
+});
 wireDialog('ruleDlg','ruleClose');
 wireDialog('histDlg','histClose');
 wireDialog('methodDlg','methodClose');
@@ -630,14 +659,14 @@ $('modeRuleLink').addEventListener('click',()=>{
   $('originFixed').classList.toggle('hide', mode!=='fixed');
   $('originDyn').classList.toggle('hide', mode!=='dyn');
   $('ruleTitle').textContent = mode==='fixed' ? '固定提領的規則' : '動態提領的規則';
-  $('ruleDlg').showModal();
+  openDialog($('ruleDlg'));
 });
-$('histLink').addEventListener('click',()=>$('histDlg').showModal());
+$('histLink').addEventListener('click',()=>openDialog($('histDlg')));
 $('methodLink').addEventListener('click',()=>{
   $('methodFixed').classList.toggle('hide', mode!=='fixed');
   $('methodDyn').classList.toggle('hide', mode!=='dyn');
   $('methodTitle').textContent = mode==='fixed' ? '6.4% 和 7.6% 怎麼算出來的' : '6.8% 和 8.8% 怎麼算出來的';
-  $('methodDlg').showModal();
+  openDialog($('methodDlg'));
 });
 
 setMode(location.hash==='#dyn' ? 'dyn' : 'fixed');
